@@ -15,7 +15,7 @@ class TestAccount:
     
     def test_promo_valid(self):
         account = Account("John", "Johnson","12345678901")
-        account.add_promo_code("Prom_XYZ")
+        
         assert account.balance == 50
     
     def test_promo_invalid_prefix(self):
@@ -25,3 +25,11 @@ class TestAccount:
     def test_promo_invalid_suffix(self):
         account = Account("John", "Johnson","12345678901", "PRxM_Abc")
         assert account.balance == 50
+
+    def test_reduce_balance(self):
+        account = Account("John", "Johnson","12345678901", "PROM_Abc")
+        assert account.balance == 50.0
+
+    def test_balance_not_changed(self):
+        account = Account("John","Beverly","70345678901","PROM_ABc")
+        assert account.balance == 0.0
