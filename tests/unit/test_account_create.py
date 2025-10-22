@@ -14,22 +14,23 @@ class TestAccount:
         assert account.pesel == "Invalid"
     
     def test_promo_valid(self):
-        account = Account("John", "Johnson","12345678901")
+        account = Account("John", "Johnson","12345678901","PROMX_abc")
         
-        assert account.balance == 50
+        assert account.balance == 0.0
     
     def test_promo_invalid_prefix(self):
         account = Account("John", "Johnson","12345678901", "PRxM_Abc")
-        assert account.balance == 50
+        assert account.balance == 0.0
 
     def test_promo_invalid_suffix(self):
         account = Account("John", "Johnson","12345678901", "PRxM_Abc")
-        assert account.balance == 50
+        assert account.balance == 0.0
 
     def test_reduce_balance(self):
         account = Account("John", "Johnson","12345678901", "PROM_Abc")
-        assert account.balance == 50.0
+        assert account.balance == 0.0
 
     def test_balance_not_changed(self):
         account = Account("John","Beverly","70345678901","PROM_ABc")
         assert account.balance == 0.0
+

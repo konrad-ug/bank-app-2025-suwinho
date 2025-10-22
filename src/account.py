@@ -21,4 +21,25 @@ class Account:
         date_of_birth = pesel[:2]
         if promo_code and date_of_birth > 26 and date_of_birth < 60:
             self.balance = 0.0
+
+    def send_balance(self,money_to_send):
+        if self.balance >= money_to_send and money_to_send > 0:
+            self.balance -= money_to_send
+        else:
+            print("Not enough balance")
+    
+    def receive_balance(self,money_to_receive):
+        if money_to_receive > 0:
+            self.balance += money_to_receive
+    
+    def send_express_transfer(self,money_to_send):
+        if self.balance >= money_to_send and money_to_send > 0:
+            self.balance -= money_to_send
+            self.balance -= 1.0
+        else:
+            print("Not enough balance")
+
+
+
+
         
