@@ -18,3 +18,7 @@ class TestCompanyAccount:
     def test_nip_contains_letter(self):
         account = CompanyAccount("MAREK","1234567A90")
         assert account.nip == "Invalid"
+    
+    def test_nip_with_special_characters(self):
+        account = CompanyAccount("MAREK", "12345-6789")
+        assert account.nip == "Invalid"
