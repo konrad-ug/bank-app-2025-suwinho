@@ -30,3 +30,11 @@ class CompanyAccount:
             self.history.append(-additional_fee)
         else:
             print("Not enough balance")
+
+    def submit_for_company_loan(self,money_to_loan):
+        if self.balance < money_to_loan*2:
+            return False
+        if any(outcoming_money == -1775 for outcoming_money in self.history):
+            self.balance += money_to_loan
+            return True
+        return False

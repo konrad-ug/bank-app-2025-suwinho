@@ -1,59 +1,39 @@
+import pytest
 from src.account import Account
 
-
 class TestAccount:
-    def test_account_creation(self):
-        account = Account("John", "Doe", '12345678901')
+
+    @pytest.fixture
+    def account(self):
+        return Account("John", "Doe", "12345678901")
+
+    def test_account_creation(self, account):
         assert account.first_name == "John"
         assert account.last_name == "Doe"
         assert account.balance == 0.0
-        assert account.pesel == "12345678901"        
-
-    def test_pesel_to_long(self):
-        account = Account("John","Dheere","43253532153151")
-        assert account.pesel == "Invalid"
-
-    def test_pesel_too_short(self):
-        account = Account("John", "Doe", "12345")
-        assert account.pesel == "Invalid"
-    
-    def test_pesel_none(self):
-        account = Account("John", "Doe", None)
-        assert account.pesel == "Invalid"
-
-    def test_pesel_valid_length(self):
-        account = Account("John", "Doe", "12345678901")
         assert account.pesel == "12345678901"
-        
-    def test_promo_code_valid_sets_balance(self):
-        account = Account("John", "Doe", "90345678901", "PROM_ABC")
-        assert account.balance == 50.0
 
-    def test_promo_invalid(self):
-        account = Account("John", "Johnson","12345678901","PROMX_abc")
-        
-        assert account.balance == 0.0
-    
-    def test_promo_invalid_prefix(self):
-        account = Account("John", "Johnson","12345678901", "PRxM_Abc")
-        assert account.balance == 0.0
 
-    def test_promo_invalid_suffix(self):
-        account = Account("John", "Johnson","12345678901", "PRxM_Abc")
-        assert account.balance == 0.0
+    @pytest.mark.parametrize("pesel, expected_pesel", [
+        ("12345678901", "12345678901"),   
+        ("43253532153151", "Invalid"),    
+        ("12345", "Invalid"),             
+        (None, "Invalid")                 
+    ])
+    def test_pesel_initialization(self, pesel, expected_pesel):
+        account = Account("John", "Doe", pesel)
+        assert account.pesel == expected_pesel
 
-    def test_reduce_balance(self):
-        account = Account("John", "Johnson","12345678901", "PROM_Abcc")
-        assert account.balance == 0.0
 
-    def test_balance_not_changed(self):
-        account = Account("John","Beverly","70345678901","PROM_ABc")
-        assert account.balance == 50.0
-        
-    def test_promo_code_valid_but_elder_person(self):
-        account = Account("John", "Doe", "50010112345", "PROM_ABC")
-        assert account.balance == 0.0
-
-    def test_promo_code_valid_but_no_pesel(self):
-        account = Account("John", "Doe", None, "PROM_ABC")
-        assert account.balance == 0.0
+    @pytest.mark.parametrize("pesel, promo_code, expected_balance", [
+        ("90345678901", "PROM_ABC", 50.0), 
+        ("12345678901", "PROMX_abc", 0.0), 
+        ("12345678901", "PRxM_Abc", 0.0),  
+        ("12345678901", "PROM_Abcc", 0.0), 
+        ("50010112345", "PROM_ABC", 0.0),  
+        (None, "PROM_ABC", 0.0),          
+        ("70345678901", "PROM_ABc", 50.0), 
+    ])
+    def test_promo_code_application(self, pesel, promo_code, expected_balance):
+        account = Account("John", "Doe", pesel, promo_code)
+        assert account.balance == expected_balance

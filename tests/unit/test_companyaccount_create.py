@@ -1,24 +1,27 @@
+import pytest
 from src.companyaccount import CompanyAccount
 
 class TestCompanyAccount:
-    def test_create_company_account(self):
-        account = CompanyAccount("MAREK","1234567890")
-        assert account.company_name == "MAREK"
+    
+    @pytest.fixture
+    def default_company_name(self):
+        return "MAREK"
+
+    def test_create_company_account(self, default_company_name):
+        account = CompanyAccount(default_company_name, "1234567890")
+        assert account.company_name == default_company_name
         assert account.nip == "1234567890"
         assert account.balance == 0
     
-    def test_nip_too_short(self):
-        account = CompanyAccount("MAREK","123456789")
-        assert account.nip == "Invalid"
 
-    def test_nip_too_long(self):
-        account = CompanyAccount("MAREK","1234567892131")
-        assert account.nip == "Invalid"
-    
-    def test_nip_contains_letter(self):
-        account = CompanyAccount("MAREK","1234567A90")
-        assert account.nip == "Invalid"
-    
-    def test_nip_with_special_characters(self):
-        account = CompanyAccount("MAREK", "12345-6789")
+    @pytest.mark.parametrize("invalid_nip", [
+        "123456789",       # Za krótki
+        "1234567892131",   # Za długi
+        "1234567A90",      # Zawiera literę
+        "12345-6789",      # Zawiera myślnik
+        "1"                # Pusty string
+        
+    ])
+    def test_initialization_with_invalid_nip(self, default_company_name, invalid_nip):
+        account = CompanyAccount(default_company_name, invalid_nip)
         assert account.nip == "Invalid"
