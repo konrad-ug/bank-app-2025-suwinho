@@ -26,5 +26,4 @@ jobs:
           export FLASK_ENV=development
           export PYTHONPATH=$GITHUB_WORKSPACE
           flask run &
-          sleep 5
-          python3 -m pytest -v tests/performance/test_performance.py
+          python3 -m pytest -v api_test/perf/test_account_create_perf.py
