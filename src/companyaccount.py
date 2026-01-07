@@ -1,5 +1,6 @@
 import requests
-import datetime
+from datetime import datetime
+from smtp.smtp import SMTPClient
 
 class CompanyAccount:
     def __init__(self, company_name, nip):
@@ -54,3 +55,14 @@ class CompanyAccount:
             self.balance += money_to_loan
             return True
         return False
+    
+    def send_history_via_email(self, email_address: str) -> bool:
+        today = datetime.now().strftime('%Y-%m-%d')
+        subject = f"Account Transfer History {today}"
+        body = self._prepare_content()
+
+        smtp_client = SMTPClient()
+        return smtp_client.send(subject, body, email_address)
+    
+    def _prepare_content(self) -> str:
+        return f"Company account history: {self.history}"
