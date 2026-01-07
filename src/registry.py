@@ -4,7 +4,11 @@ class AccountRegistry:
     def __init__(self):
         self.accounts: list[Account] = []
     
-    def add_account(self,account: Account):
+    def add_account(self, account: Account):
+        for existing_account in self.accounts:
+            if existing_account.pesel == account.pesel:
+                return False 
+    
         self.accounts.append(account)
         return self.accounts
     
@@ -20,5 +24,9 @@ class AccountRegistry:
     def show_quantity(self):
         return len(self.accounts)
     
+    def delete_account(self,account):
+        if account:
+            return self.accounts.remove(account)
+        return 404
 
     

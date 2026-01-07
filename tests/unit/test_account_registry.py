@@ -8,6 +8,17 @@ class TestAccountRegistry:
     def account_registry(self):
         return AccountRegistry()
     
+    def test_add_duplicate_account(self, account_registry):
+        acc1 = Account("John", "Doe", "12345678901")
+        acc2 = Account("Jane", "Doe", "12345678901") 
+        
+        account_registry.add_account(acc1)
+        result = account_registry.add_account(acc2) 
+        
+        assert result == False
+        assert account_registry.show_quantity() == 1
+        
+
     @pytest.mark.parametrize("account_data, pesel_to_find, expected_found", [
         (("John", "Doe", "12345678901"), "12345678901", True),
         (("John", "Doe", "12345678901"), "00000000000", False),

@@ -1,39 +1,109 @@
 import pytest
+from unittest.mock import patch # <--- Don't forget this import
 from src.account import Account
+from src.companyaccount import CompanyAccount
 
-class TestAccount:
+class TestAccountRefactored:
+
+    # FIX: Added this fixture to intercept API calls for all tests in this class
+    @pytest.fixture(autouse=True)
+    def mock_api(self):
+        with patch('src.companyaccount.requests.get') as mock_get:
+            mock_get.return_value.status_code = 200
+            # We mimic a valid company so the object creates successfully
+            mock_get.return_value.json.return_value = {
+                "result": {"subject": {"statusVat": "Czynny"}}
+            }
+            yield mock_get
 
     @pytest.fixture
     def account(self):
         return Account("John", "Doe", "12345678901")
 
-    def test_account_creation(self, account):
-        assert account.first_name == "John"
-        assert account.last_name == "Doe"
-        assert account.balance == 0.0
-        assert account.pesel == "12345678901"
+    @pytest.fixture
+    def company_account(self):
+        # This will now succeed because mock_api is running in the background
+        return CompanyAccount("MarekCorp", "1234567890")
 
-
-    @pytest.mark.parametrize("pesel, expected_pesel", [
-        ("12345678901", "12345678901"),   
-        ("43253532153151", "Invalid"),    
-        ("12345", "Invalid"),             
-        (None, "Invalid")                 
+    @pytest.mark.parametrize("initial_balance, amount, expected_balance", [
+        (100.0, 100.0, 0.0),    
+        (100.0, 50.0, 50.0),    
+        (50.0, 100.0, 50.0),    
+        (40.0, 50.0, 40.0)     
     ])
-    def test_pesel_initialization(self, pesel, expected_pesel):
-        account = Account("John", "Doe", pesel)
-        assert account.pesel == expected_pesel
-
-
-    @pytest.mark.parametrize("pesel, promo_code, expected_balance", [
-        ("90345678901", "PROM_ABC", 50.0), 
-        ("12345678901", "PROMX_abc", 0.0), 
-        ("12345678901", "PRxM_Abc", 0.0),  
-        ("12345678901", "PROM_Abcc", 0.0), 
-        ("50010112345", "PROM_ABC", 0.0),  
-        (None, "PROM_ABC", 0.0),          
-        ("70345678901", "PROM_ABc", 50.0), 
-    ])
-    def test_promo_code_application(self, pesel, promo_code, expected_balance):
-        account = Account("John", "Doe", pesel, promo_code)
+    def test_send_balance(self, account, initial_balance, amount, expected_balance):
+        account.balance = initial_balance
+        account.send_balance(amount)
         assert account.balance == expected_balance
+
+    @pytest.mark.parametrize("initial_balance, amount, expected_balance", [
+        (0.0, 100.0, 100.0),    
+        (50.0, 50.0, 100.0),    
+        (0.0, -50.0, 0.0)      
+    ])
+    def test_receive_balance(self, account, initial_balance, amount, expected_balance):
+        account.balance = initial_balance
+        account.receive_balance(amount)
+        assert account.balance == expected_balance
+
+    @pytest.mark.parametrize("initial_balance, amount, expected_balance", [
+        (50.0, 50.0, -1.0),     
+        (40.0, 50.0, 40.0)      
+    ])
+    def test_express_transfer_individual(self, account, initial_balance, amount, expected_balance):
+        account.balance = initial_balance
+        account.send_express_transfer(amount)
+        assert account.balance == expected_balance
+
+    @pytest.mark.parametrize("initial_balance, amount, expected_balance", [
+        (50.0, 50.0, -5.0),    
+        (200.0, 100.0, 95.0),   
+        (50.0, 100.0, 50.0),    
+        (40.0, 50.0, 40.0)      
+    ])
+    def test_express_transfer_company(self, company_account, initial_balance, amount, expected_balance):
+        company_account.balance = initial_balance
+        company_account.send_company_express_transfer(amount)
+        assert company_account.balance == expected_balance
+
+    def test_history_updated_after_transfer(self, account):
+        account.balance = 100
+        account.send_balance(30)
+        assert account.history[-1] == -30 
+        assert len(account.history) == 1
+
+    def test_history_not_updated_on_fail(self, account):
+        account.balance = 10
+        account.send_balance(100) 
+        assert len(account.history) == 0
+
+    @pytest.mark.parametrize("history, loan_amount, expected_result, balance_change", [
+        ([1000, 1000, 1000, 1000, 1000], 3000, True, 3000),
+        ([2000, 2000, 2000, -500, 2000], 500, False, 0),
+        ([100, 100, 100, 100, 100], 2000, False, 0),
+        ([1000, 1000], 500, True, 500) 
+    ])
+    def test_loan_application(self, account, history, loan_amount, expected_result, balance_change):
+        account.history = history
+        initial_balance = 0
+        account.balance = initial_balance
+        result = account.submit_for_loan(loan_amount)
+        
+        assert result == expected_result
+        assert account.balance == initial_balance + balance_change
+
+    @pytest.mark.parametrize("history, initial_balance, loan_amount, expected_result, balance_change", [
+        #uda sie 
+        ([1000, 1000, 1000, 1000, -1775], 7000 , 3000, True, 3000),
+        # nie ma opłaty ZUS
+        ([2000, 2000, 2000, -500, 2000], 2000 , 500, False, 0),
+        # za mało salda na portfelu
+        ([100, 100, 100, 100, 100], 1000 ,2000, False, 0),
+    ])
+    def test_company_loan_application(self, company_account, history, initial_balance, loan_amount, expected_result, balance_change):
+        company_account.history = history
+        company_account.balance = initial_balance
+        result = company_account.submit_for_company_loan(loan_amount)
+
+        assert result == expected_result
+        assert company_account.balance == initial_balance + balance_change

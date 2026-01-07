@@ -1,3 +1,6 @@
+import requests
+import datetime
+
 class CompanyAccount:
     def __init__(self, company_name, nip):
         self.company_name = company_name
@@ -5,7 +8,20 @@ class CompanyAccount:
         self.balance = 0
         self.history = []
 
+    def check_nip_in_db(self,nip):
+        BANK_APP_MF_URL = "https://wl-api.mf.gov.pl/api/search/nip/"
+        date = "2025-12-10"
+        response = requests.get(f"{BANK_APP_MF_URL}{nip}/{date}")
+        data = response.json()
+        if data['result']['subject']['statusVat'] != "Czynny":
+            print("nie ma takiego nipu")
+            return False
+        return True
+
     def is_nip_valid(self, nip):
+        if self.check_nip_in_db(nip) == False:
+            raise ValueError("COMPANY NOT REGISTERED!!!")
+
         if len(nip) == 10 and nip.isdigit():
             return True
         return False

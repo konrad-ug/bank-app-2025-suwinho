@@ -32,13 +32,17 @@ class Account:
         if self.balance >= money_to_send and money_to_send > 0:
             self.balance -= money_to_send
             self.history.append(-money_to_send)
+            return True
         else:
             print("Not enough balance")
+            return False
     
     def receive_balance(self, money_to_receive):
         if money_to_receive > 0:
             self.balance += money_to_receive
             self.history.append(money_to_receive)
+            return True
+        return False
     
     def send_express_transfer(self, money_to_send, additional_fee=1.0):
         if self.balance >= money_to_send and money_to_send > 0:
@@ -46,8 +50,10 @@ class Account:
             self.balance -= additional_fee
             self.history.append(-money_to_send)
             self.history.append(-additional_fee)
+            return True
         else:
             print("Not enough balance")
+            return False
 
     def submit_for_loan(self, amount_for_loan):
         third_last_index = len(self.history)-3
