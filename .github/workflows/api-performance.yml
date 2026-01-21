@@ -13,17 +13,20 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install flask requests pytest pytest-mock
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Start flask and Execute Performance Tests
         run: |
           export FLASK_APP=app/api.py
-          export FLASK_ENV=development
-          export PYTHONPATH=$GITHUB_WORKSPACE
-          flask run &
-          python3 -m pytest -v api_test/perf/
+          export PYTHONPATH=${{ github.workspace }}
+
+          python -m flask run &
+
+          sleep 5
+          python -m pytest -v app/api_test/perf/
