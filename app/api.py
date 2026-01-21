@@ -28,10 +28,14 @@ def create_account():
 def get_all_accounts():
     print("Get all accounts request received")
     accounts = registry.show_all_accounts()
-    if not accounts:
-        return 404
-    accounts_data = [{"name": acc.first_name, "surname": acc.last_name, "pesel":
-    acc.pesel, "balance": acc.balance} for acc in accounts]
+    accounts_data = [
+        {
+            "name": acc.first_name, 
+            "surname": acc.last_name, 
+            "pesel": acc.pesel, 
+            "balance": acc.balance
+        } for acc in accounts
+    ]
     return jsonify(accounts_data), 200
 
 @app.route("/api/accounts/count", methods=['GET'])
@@ -45,7 +49,7 @@ def get_account_by_pesel(pesel):
     finded = registry.find_accounts_with_pesel(pesel)
     if not finded:
         return jsonify({"error": "Account not found"}), 404
-    return jsonify({"name": finded.first_name, "surname": finded.last_name, "pesel": finded.pesel}), 200
+    return jsonify({"name": finded.first_name, "surname": finded.last_name, "pesel": finded.pesel, "balance": finded.balance}), 200
 
 @app.route("/api/accounts/<pesel>", methods=['PATCH'])
 def update_account(pesel):
