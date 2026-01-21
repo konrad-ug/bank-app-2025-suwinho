@@ -32,8 +32,13 @@ jobs:
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-      - name: Unit tests with Coverage
+      - name: Run Tests with Coverage
         run: |
+          export FLASK_APP=app/api.py
+          export PYTHONPATH=${{ github.workspace }}    
+          python3 -m flask run &
+          sleep 5
+
           python3 -m coverage run --source=src -m pytest
 
       - name: Show coverage report
