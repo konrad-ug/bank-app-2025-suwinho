@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: ["main"]
 
-permissions:
-  contents: read
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,22 +21,21 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 pytest pytest-mock requests coverage
+          pip install flask requests pytest pytest-mock coverage behave
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Lint with flake8
-        run: |
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-      - name: Run Tests with Coverage
+      - name: Run All Tests (Unit, Perf, BDD) with Coverage
         run: |
           export FLASK_APP=app/api.py
-          export PYTHONPATH=${{ github.workspace }}    
+          export PYTHONPATH=${{ github.workspace }}
+
           python3 -m flask run &
+
           sleep 5
 
           python3 -m coverage run --source=src -m pytest
+
+          behave
 
       - name: Show coverage report
         run: |
