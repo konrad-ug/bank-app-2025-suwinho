@@ -72,3 +72,15 @@ class TestAccountRegistry:
         account_registry.add_account(account2)
         assert account_registry.show_quantity() == 2
         
+    def test_delete_account_success(self, account_registry, account1):
+        account_registry.add_account(account1)
+        assert account_registry.show_quantity() == 1       
+        result = account_registry.delete_account(account1)
+        assert account_registry.show_quantity() == 0
+        assert account1 not in account_registry.show_all_accounts()
+
+    def test_delete_account_not_found(self, account_registry):
+        result = account_registry.delete_account(None)
+        
+        assert result == 404
+        assert account_registry.show_quantity() == 0

@@ -13,6 +13,15 @@ class Account:
         self.pesel = pesel if self.is_pesel_valid(pesel) else "Invalid"
         self.history = []
 
+    def to_dict(self):
+        return {
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "pesel": self.pesel,
+            "balance": self.balance,
+            "history": self.history
+        }
+
     def is_pesel_valid(self, pesel):
         if pesel and len(pesel) == 11:
             return True

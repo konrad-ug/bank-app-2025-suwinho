@@ -104,3 +104,36 @@ class TestAccountRefactored:
 
         assert result == expected_result
         assert company_account.balance == initial_balance + balance_change
+    
+    @pytest.fixture
+    def company_account(self, mock_api):
+        return CompanyAccount("MarekCorp", "1234567890")
+
+    @pytest.mark.parametrize("initial_balance, amount, expected_balance, expected_history_len", [
+        (100.0, 50.0, 50.0, 1),   # Sukces
+        (100.0, 150.0, 100.0, 0),  # Za mało środków
+        (100.0, -10.0, 100.0, 0),  # Ujemna kwota
+    ])
+    def test_company_send_balance(self, company_account, initial_balance, amount, expected_balance, expected_history_len):
+        company_account.balance = initial_balance
+        company_account.send_balance(amount)
+        assert company_account.balance == expected_balance
+        assert len(company_account.history) == expected_history_len
+
+    @pytest.mark.parametrize("initial_balance, amount, expected_balance, expected_history_len", [
+        (0.0, 100.0, 100.0, 1),   # Sukces
+        (50.0, 0.0, 50.0, 0),     # przelewamy 0 złoycyh
+        (50.0, -20.0, 50.0, 0),   # przelewamy ujemną kwotę
+    ])
+    def test_company_receive_balance(self, company_account, initial_balance, amount, expected_balance, expected_history_len):
+        company_account.balance = initial_balance
+        company_account.receive_balance(amount)
+        assert company_account.balance == expected_balance
+        assert len(company_account.history) == expected_history_len
+
+    
+
+    def test_company_express_transfer_insufficient_funds(self, company_account):
+        company_account.send_company_express_transfer(50) 
+        assert company_account.balance == 0
+        assert len(company_account.history) == 0

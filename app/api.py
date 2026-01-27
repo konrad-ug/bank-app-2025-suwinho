@@ -1,11 +1,11 @@
 import sys
 import os
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from flask import Flask, request, jsonify
 from src.registry import AccountRegistry
 from src.account import Account
+from src.mongoAccountsRepository import MongoAccountsRepository
 
 app = Flask(__name__)
 registry = AccountRegistry()
@@ -105,6 +105,20 @@ def make_outgoing_transfer(pesel):
                 return jsonify({"error": "Insufficient funds"}),422
     except ValueError:
         return jsonify({"error": "Invalid transfer type"}),400
+    
+repo = MongoAccountsRepository()
+
+@app.route("/api/accounts/save", methods=['POST'])
+def save_accounts():
+    accounts = registry.show_all_accounts()
+    repo.save_all(accounts)
+    return jsonify({"message": "Successfully saved to database"}), 200
+
+@app.route("/api/accounts/load", methods=['POST'])
+def load_accounts():
+    registry.accounts = [] 
+    db_accounts = repo.load_all()
+    return jsonify({"message": "Successfully loaded from database"}), 200
 
 if __name__ == "__main__":
     app.run(debug=True)

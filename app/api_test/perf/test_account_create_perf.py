@@ -50,3 +50,4 @@ class TestAccountPerformance:
         assert account_data['balance'] == expected_balance
         
         requests.delete(f"{BASE_URL}/{pesel}")
+
