@@ -37,3 +37,18 @@ class TestAccount:
     def test_promo_code_application(self, pesel, promo_code, expected_balance):
         account = Account("John", "Doe", pesel, promo_code)
         assert account.balance == expected_balance
+
+    def test_to_dict_returns_correct_fields(self):
+        account = Account("Jan", "Kowalski", "12345678901")
+        account.balance = 150.0
+        account.history = [150.0]
+    
+        expected_dict = {
+            "first_name": "Jan",
+            "last_name": "Kowalski",
+            "pesel": "12345678901",
+            "balance": 150.0,
+            "history": [150.0]
+        }
+
+        assert account.to_dict() == expected_dict
